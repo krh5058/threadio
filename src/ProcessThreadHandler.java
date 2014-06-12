@@ -5,6 +5,7 @@ public class ProcessThreadHandler
 	private static Thread[] threads = new Thread[allowableProcesses];
 	
     public void startProcess(IOProcess process){
+    	boolean full = true;
     	for (int i=0;i<processes.length;i++) {
     		if (processes[i] == null){
     	    	processes[i] = process;
@@ -12,9 +13,14 @@ public class ProcessThreadHandler
     	    	threads[i] = t;
     	    	t.start();
     	        System.out.format("Started process, %s, in thread: %s%n",process.name,t.getName());
+    	        full = false;
     	        break;
     		}
     	}
+		if (full){
+			System.out.format("Could not add process, %s.  " +
+					"Allowable processes limit (%d) reached.%n",process.name,allowableProcesses);
+		}
     }
     private void stopAll() {
     	for (IOProcess process : processes) {
@@ -26,11 +32,10 @@ public class ProcessThreadHandler
 	public static void main(String[] args) {
 		ProcessThreadHandler jt = new ProcessThreadHandler();
 		WriteData wObj = new WriteData();
-		ReadData rObj = new ReadData();
-		WriteData w2Obj = new WriteData();
-		ReadData r2Obj = new ReadData();		
+		ReadData rObj = new ReadData();	
 		jt.startProcess(wObj);
-		jt.startProcess(r2Obj);		
+		jt.startProcess(rObj);
+		jt.startProcess(rObj);
 		boolean run = true;
 		long startTime = System.currentTimeMillis();
 		while (run){
@@ -40,7 +45,6 @@ public class ProcessThreadHandler
 				break;
 			}
 		}
-		System.out.println("test");
 	}
 }
 
@@ -54,19 +58,11 @@ abstract class IOProcess implements ProcessInterface {
 	private volatile boolean running = true;
 	
 	public IOProcess() {
-		String name = this.getName();
-		if (this.getInstance() == null) {
-			this.setInstance(this);
-			this.name = name;
-	    	System.out.format("Initialized IOProcess: %s.",this.name);
-		} else {
-			System.out.format("Cannot initialize IOProcess: %s.", name);
-		}
+		this.name = this.getName();
+		System.out.format("Initialized IOProcess: %s.%n",this.name);
     }
 	
 	abstract protected String getName();
-	abstract protected void setInstance(IOProcess process);
-	abstract protected IOProcess getInstance();
 	
 	public void terminate() {this.running = false;}
 	
@@ -90,10 +86,6 @@ abstract class IOProcess implements ProcessInterface {
 class WriteData
 extends IOProcess {
 	public final static String name = "WriteData";
-	private static WriteData INSTANCE = null;
-	
-	protected void setInstance(IOProcess process){WriteData.INSTANCE = (WriteData) process;}
-	protected WriteData getInstance() {return (WriteData) INSTANCE;}
 	public String getName() {return WriteData.name;}
 	
 	public void execute() {System.out.println("write");}
@@ -102,10 +94,6 @@ extends IOProcess {
 class ReadData
 extends IOProcess {
 	public final static String name = "ReadData";
-	private static ReadData INSTANCE = null;
-	
-	protected void setInstance(IOProcess process){ReadData.INSTANCE = (ReadData) process;}
-	protected ReadData getInstance() {return (ReadData) INSTANCE;}
 	public String getName() {return ReadData.name;}
 	
 	public void execute() {System.out.println("read");}
