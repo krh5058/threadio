@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class ProcessThreadHandler
 {
 	private ArrayList<IOProcess> processes = new ArrayList<IOProcess>();
+	private ArrayList<Thread> threads = new ArrayList<Thread>();
     public ProcessThreadHandler()
     {
     	System.out.println("Initialized ProcessThreadHandler.");
@@ -14,39 +15,51 @@ public class ProcessThreadHandler
 //    	 t.start();
 //    }
     
-    public void attachProcess(){
-    	WriteData
-    	
+    public void attachProcessAndStartThread(IOProcess process){
+    	this.processes.add(process);
+    	this.startThread(process);
     }
     
-    public void startThread() {
-    	process = new Process1(); 
-    	t = new Thread(process);
+    private void startThread(IOProcess process) {
+    	Thread t = new Thread(process);
+    	this.threads.add(t);
         t.start();
         System.out.format("Started thread: %s%n",
-    			this.threadMessage());
+    			this.threadMessage(t));
     }
-    public void stopThread() {
-    	if (t != null){
+    private void stopAll() {
+    	for (IOProcess process : processes) {
+//    		if (t != null){
     		process.terminate();
     		System.out.println("terminate");
+//    		}
     	}
     }
-    private String threadMessage() {
+    private String threadMessage(Thread t) {
         String threadName =
-            Thread.currentThread().getName();
+            t.getName();
         return threadName;
     }
 
-//	public static void main(String[] args) {
-//		// TODO Auto-generated method stub
-////		new MyJavaThread().start();
-//		MyJavaThread jt = new MyJavaThread();
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+//		new MyJavaThread().start();
+		ProcessThreadHandler jt = new ProcessThreadHandler();
+		jt.attachProcessAndStartThread(new WriteData());
 //		jt.appendFilename("test");
 //		jt.appendFilename("test2");
 //		System.out.println(jt.getIndex("test"));
 //		System.out.println(jt.getIndex("test2"));
-//	}
+		boolean run = true;
+		long startTime = System.currentTimeMillis();
+		while (run){
+			if ((System.currentTimeMillis() - startTime) > 10000){
+				System.out.println("Stop all.");
+				jt.stopAll();
+				break;
+			}
+		}
+	}
 }
 
 
