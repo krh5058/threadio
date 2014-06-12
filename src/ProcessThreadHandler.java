@@ -1,52 +1,46 @@
-//import java.io.DataOutputStream;
-//import java.io.FileOutputStream;
-
-//import java.util.ArrayList;
 public class ProcessThreadHandler
 {
 	private static final int allowableProcesses = 2;
 	private static IOProcess[] processes = new IOProcess[allowableProcesses];
 	private static Thread[] threads = new Thread[allowableProcesses];
-    public ProcessThreadHandler()
-    {
-    	System.out.println("Initialized ProcessThreadHandler.");
-    }
-    
+	
     public void startProcess(IOProcess process){
-    	ProcessThreadHandler.processes[1] = process;
-    	Thread t = new Thread(process);
-    	ProcessThreadHandler.threads[1] = t;
-    	t.start();
-        System.out.format("Started thread: %s%n",
-    			this.threadMessage(t));
-    }    
-    
-    private void stopAll() {
-    	for (IOProcess process : processes) {
-//    		if (t != null){
-    		process.terminate();
-    		System.out.println("terminate");
-//    		}
+    	for (int i=0;i<processes.length;i++) {
+    		if (processes[i] == null){
+    	    	processes[i] = process;
+    	    	Thread t = new Thread(process);
+    	    	threads[i] = t;
+    	    	t.start();
+    	        System.out.format("Started process, %s, in thread: %s%n",process.name,t.getName());
+    	        break;
+    		}
     	}
     }
-    private String threadMessage(Thread t) {
-        String threadName =
-            t.getName();
-        return threadName;
+    private void stopAll() {
+    	for (IOProcess process : processes) {
+    		if (process != null){
+	    		process.terminate();
+    		}
+    	}
     }
-
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		ProcessThreadHandler jt = new ProcessThreadHandler();
-		System.out.println("Trying Write 1.");
-		WriteData w = new WriteData();
-		System.out.println("Trying Read 1.");
-		ReadInput r = new ReadInput();
-		System.out.println("Trying Write 2.");
-		WriteData w = new WriteData();
-		System.out.println("Trying Read 2.");
-		ReadInput r = new ReadInput();
-		jt.startProcess(r);
+		WriteData wObj = new WriteData();
+		ReadData rObj = new ReadData();
+		WriteData w2Obj = new WriteData();
+		ReadData r2Obj = new ReadData();		
+		jt.startProcess(wObj);
+		jt.startProcess(r2Obj);		
+		boolean run = true;
+		long startTime = System.currentTimeMillis();
+		while (run){
+			if ((System.currentTimeMillis() - startTime) > 9900){
+				System.out.println("Stop all.");
+				jt.stopAll();
+				break;
+			}
+		}
+		System.out.println("test");
 	}
 }
 
@@ -56,71 +50,63 @@ interface ProcessInterface extends Runnable {
 }
 
 abstract class IOProcess implements ProcessInterface {
-	protected volatile boolean running = true;
+	public String name;
+	private volatile boolean running = true;
 	
 	public IOProcess() {
+		String name = this.getName();
 		if (this.getInstance() == null) {
 			this.setInstance(this);
-	    	System.out.println("Initialized IOProcess.");
+			this.name = name;
+	    	System.out.format("Initialized IOProcess: %s.",this.name);
 		} else {
-			System.out.println("Nope");
+			System.out.format("Cannot initialize IOProcess: %s.", name);
 		}
     }
 	
+	abstract protected String getName();
 	abstract protected void setInstance(IOProcess process);
 	abstract protected IOProcess getInstance();
 	
-	public void terminate() {
-		running = false;
-	}
+	public void terminate() {this.running = false;}
 	
 	@Override
 	public void run()
-	{
+	{	
 		while (this.running){
 			try
 			{
 				this.execute();
-				Thread.sleep(2000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				this.terminate();
 			} catch (Exception ex) {
 				System.out.println(ex.toString());
 			}
 		}
-		System.out.println("finished");
 	}
 }
 
 class WriteData
 extends IOProcess {
+	public final static String name = "WriteData";
 	private static WriteData INSTANCE = null;
-    
-	protected void setInstance(IOProcess process){
-		WriteData.INSTANCE = (WriteData) process;
-	}
 	
-	protected WriteData getInstance() {
-    	return (WriteData) INSTANCE;
-    }
-	public void execute() {
-		System.out.println("write");
-	}
+	protected void setInstance(IOProcess process){WriteData.INSTANCE = (WriteData) process;}
+	protected WriteData getInstance() {return (WriteData) INSTANCE;}
+	public String getName() {return WriteData.name;}
+	
+	public void execute() {System.out.println("write");}
 }
 
-class ReadInput
+class ReadData
 extends IOProcess {
-	private static ReadInput INSTANCE = null;
-    
-	protected void setInstance(IOProcess process){
-		ReadInput.INSTANCE = (ReadInput) process;
-	}
+	public final static String name = "ReadData";
+	private static ReadData INSTANCE = null;
 	
-	protected ReadInput getInstance() {
-    	return INSTANCE;
-    }
-
-	public void execute() {
-		System.out.println("read");
-	}
+	protected void setInstance(IOProcess process){ReadData.INSTANCE = (ReadData) process;}
+	protected ReadData getInstance() {return (ReadData) INSTANCE;}
+	public String getName() {return ReadData.name;}
+	
+	public void execute() {System.out.println("read");}
 }
