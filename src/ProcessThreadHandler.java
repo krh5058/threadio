@@ -1,33 +1,26 @@
 //import java.io.DataOutputStream;
 //import java.io.FileOutputStream;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 public class ProcessThreadHandler
 {
 	private static final int allowableProcesses = 2;
 	private static IOProcess[] processes = new IOProcess[allowableProcesses];
-//	private static final Thread[] threads = new Thread[allowableProcesses];
+	private static Thread[] threads = new Thread[allowableProcesses];
     public ProcessThreadHandler()
     {
     	System.out.println("Initialized ProcessThreadHandler.");
     }
     
-//    public void startThread(){
-//    	 t.start();
-//    }
+    public void startProcess(IOProcess process){
+    	ProcessThreadHandler.processes[1] = process;
+    	Thread t = new Thread(process);
+    	ProcessThreadHandler.threads[1] = t;
+    	t.start();
+        System.out.format("Started thread: %s%n",
+    			this.threadMessage(t));
+    }    
     
-//    public void attachProcessAndStartThread(IOProcess process){
-//    	this.processes.add(process);
-//    	this.startThread(process);
-//    }
-    
-//    private void startThread(IOProcess process) {
-//    	Thread t = new Thread(process);
-//    	this.threads.add(t);
-//        t.start();
-//        System.out.format("Started thread: %s%n",
-//    			this.threadMessage(t));
-//    }
     private void stopAll() {
     	for (IOProcess process : processes) {
 //    		if (t != null){
@@ -44,30 +37,16 @@ public class ProcessThreadHandler
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-//		new MyJavaThread().start();
-//		ProcessThreadHandler jt = new ProcessThreadHandler();
+		ProcessThreadHandler jt = new ProcessThreadHandler();
 		System.out.println("Trying Write 1.");
-		new WriteData();
+		WriteData w = new WriteData();
 		System.out.println("Trying Read 1.");
-		new ReadInput();
+		ReadInput r = new ReadInput();
 		System.out.println("Trying Write 2.");
-		new WriteData();
+		WriteData w = new WriteData();
 		System.out.println("Trying Read 2.");
-		new ReadInput();
-//		jt.attachProcessAndStartThread(WriteData.getInstance());
-////		jt.appendFilename("test");
-////		jt.appendFilename("test2");
-////		System.out.println(jt.getIndex("test"));
-////		System.out.println(jt.getIndex("test2"));
-//		boolean run = true;
-//		long startTime = System.currentTimeMillis();
-//		while (run){
-//			if ((System.currentTimeMillis() - startTime) > 10000){
-//				System.out.println("Stop all.");
-//				jt.stopAll();
-//				break;
-//			}
-//		}
+		ReadInput r = new ReadInput();
+		jt.startProcess(r);
 	}
 }
 
@@ -124,38 +103,9 @@ extends IOProcess {
 	protected WriteData getInstance() {
     	return (WriteData) INSTANCE;
     }
-    
-//	private static final int allowableFiles = 1;
-//	private static String[] filenames = new String[allowableFiles];
-	
-//    public void specifyFilename(String filename)
-//    {
-//    	if (this.filenames.contains(filename)) {
-//    		System.out.format("Filename, %s, already appened to index %d.%n",
-//    				filename,
-//    				this.getIndex(filename));
-//    	} else {
-//    		this.filenames.add(filename);
-//    	}
-//    }
-//    public int getIndex(String filename)
-//    {
-//    	return this.filenames.indexOf(filename);
-//    }
-
 	public void execute() {
 		System.out.println("write");
 	}
-
-
-				//    	            DataOutputStream out = new DataOutputStream(
-				//    	                                     new FileOutputStream(filename));
-				//    	            for (int i=0; i < doubleData.length; i++)
-				//    	            {
-				//    	                out.writeDouble(doubleData[i]);
-				//    	            }
-				//    	            out.close();
-				
 }
 
 class ReadInput
