@@ -4,13 +4,13 @@ public class ProcessThreadManager
 	private IOProcess[] processes = new IOProcess[maxAllowableProcesses];
 	private Thread[] threads = new Thread[maxAllowableProcesses]; // 1:1 process-to-thread ratio
 	
-    public void startProcess(IOProcess process){ // Store and start thread
+	public void startProcess(IOProcess process){ // Store and start thread
     	boolean full = true;
     	for (int i=0;i<processes.length;i++) { // Search for allowable slot
-    		if (processes[i] == null){  // Allowed!
-    	    	(threads[i] = new Thread(processes[i] = process)).start(); // Store process and thread, and start thread
-    	        System.out.format("Started process (%d), %s, in thread: %s%n",i,processes[i].name,threads[i].getName()); // Validate process against thread index
-    	        full = false;
+		if (processes[i] == null){  // Allowed!
+			(threads[i] = new Thread(processes[i] = process)).start(); // Store process and thread, and start thread
+			System.out.format("Started process (%d), %s, in thread: %s%n",i,processes[i].name,threads[i].getName()); // Validate process against thread index
+				full = false;
     	        break; // Leave remaining slots as null
     		}
     	}
