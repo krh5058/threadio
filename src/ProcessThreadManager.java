@@ -2,13 +2,13 @@
 //import java.io.FileOutputStream;
 
 import java.util.ArrayList;
-public class ProcessThreadHandler
+public class ProcessThreadManager
 {
 	private ArrayList<IOProcess> processes = new ArrayList<IOProcess>();
 	private ArrayList<Thread> threads = new ArrayList<Thread>();
-    public ProcessThreadHandler()
+    public ProcessThreadManager()
     {
-    	System.out.println("Initialized ProcessThreadHandler.");
+    	System.out.println("Initialized ProcessThreadManager.");
     }
     
 //    public void startThread(){
@@ -44,7 +44,7 @@ public class ProcessThreadHandler
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 //		new MyJavaThread().start();
-		ProcessThreadHandler jt = new ProcessThreadHandler();
+		ProcessThreadManager jt = new ProcessThreadManager();
 		jt.attachProcessAndStartThread(new WriteData());
 //		jt.appendFilename("test");
 //		jt.appendFilename("test2");
