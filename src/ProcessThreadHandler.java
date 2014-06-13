@@ -1,46 +1,38 @@
 public class ProcessThreadHandler
 {
-	private static final int allowableProcesses = 2;
-	private static IOProcess[] processes = new IOProcess[allowableProcesses];
-	private static Thread[] threads = new Thread[allowableProcesses];
+	private static final int maxAllowableProcesses = 2; // Maximum allowable processes
+	private IOProcess[] processes = new IOProcess[maxAllowableProcesses];
+	private Thread[] threads = new Thread[maxAllowableProcesses]; // 1:1 process-to-thread ratio
 	
-    public void startProcess(IOProcess process){
+    public void startProcess(IOProcess process){ // Store and start thread
     	boolean full = true;
-    	for (int i=0;i<processes.length;i++) {
-    		if (processes[i] == null){
-    	    	processes[i] = process;
-    	    	Thread t = new Thread(process);
-    	    	threads[i] = t;
-    	    	t.start();
-    	        System.out.format("Started process, %s, in thread: %s%n",process.name,t.getName());
+    	for (int i=0;i<processes.length;i++) { // Search for allowable slot
+    		if (processes[i] == null){  // Allowed!
+    	    	(threads[i] = new Thread(processes[i] = process)).start(); // Store process and thread, and start thread
+    	        System.out.format("Started process (%d), %s, in thread: %s%n",i,processes[i].name,threads[i].getName()); // Validate process against thread index
     	        full = false;
-    	        break;
+    	        break; // Leave remaining slots as null
     		}
     	}
-		if (full){
-			System.out.format("Could not add process, %s.  " +
-					"Allowable processes limit (%d) reached.%n",process.name,allowableProcesses);
+		if (full){ // No slot available
+			System.out.format("Could not add process, %s. Allowable processes limit (%d) reached.%n",process.name,maxAllowableProcesses);
 		}
     }
-    private void stopAll() {
+    private void stopAll() { // Stop all threads
     	for (IOProcess process : processes) {
     		if (process != null){
-	    		process.terminate();
+	    		process.terminate(); // Threads are terminated by their corresponding process
     		}
     	}
     }
-	public static void main(String[] args) {
+	public static void main(String[] args) { // Demonstration purposes
 		ProcessThreadHandler jt = new ProcessThreadHandler();
-		WriteData wObj = new WriteData();
-		ReadData rObj = new ReadData();	
-		jt.startProcess(wObj);
-		jt.startProcess(rObj);
-		jt.startProcess(rObj);
+		jt.startProcess(new WriteData()); // Add an example process
+		jt.startProcess(new ReadData()); // Add another example process
 		boolean run = true;
 		long startTime = System.currentTimeMillis();
 		while (run){
-			if ((System.currentTimeMillis() - startTime) > 9900){
-				System.out.println("Stop all.");
+			if ((System.currentTimeMillis() - startTime) > 10000){ // Issue process termination after 10 seconds
 				jt.stopAll();
 				break;
 			}
@@ -48,53 +40,58 @@ public class ProcessThreadHandler
 	}
 }
 
-interface ProcessInterface extends Runnable {
-	void terminate();
-	void execute();
+interface ProcessInterface extends Runnable { // A loose contract for a process; #1 Intended to be executed by a thread
+	void terminate(); // #2 Has the ability to terminate
+	void execute(); // #3 Actually does something
 }
 
-abstract class IOProcess implements ProcessInterface {
-	public String name;
-	private volatile boolean running = true;
+abstract class IOProcess implements ProcessInterface { // One example of a process: I/O
+	public String name; // An accessible name
+	private volatile boolean running = true; // A flag for run()
 	
-	public IOProcess() {
-		this.name = this.getName();
-		System.out.format("Initialized IOProcess: %s.%n",this.name);
+	public IOProcess() { // Constructor
+		System.out.format("Initialized IOProcess: %s.%n",this.name = this.getName());
     }
-	
-	abstract protected String getName();
-	
-	public void terminate() {this.running = false;}
+	// Expected accessor methods
+	abstract protected String getName(); // The process must be able to provide a name
+	abstract protected int getInterval(); // The process must be able to provide an interval for execution
 	
 	@Override
-	public void run()
+	public void run() // Meets interface requirement #1
 	{	
-		while (this.running){
-			try
+		while (this.running){ // Determines the lifetime of the thread
+			try // Essential for sleep
 			{
-				this.execute();
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				this.terminate();
-			} catch (Exception ex) {
-				System.out.println(ex.toString());
+				this.execute(); // Do the thing it was contracted to do
+				Thread.sleep(this.getInterval()); // Blocking method to free processor
+			} catch (InterruptedException e1) { // If sleep was interrupted
+				this.terminate(); // Assume an interruption means to end process and close the thread
 			}
 		}
 	}
-}
-
-class WriteData
-extends IOProcess {
-	public final static String name = "WriteData";
-	public String getName() {return WriteData.name;}
+	public void terminate() {this.running = false;} // Meets interface requirement #2
 	
-	public void execute() {System.out.println("write");}
 }
 
-class ReadData
+class WriteData // Skeleton I/O process.  For example, writing data from some buffer
 extends IOProcess {
-	public final static String name = "ReadData";
-	public String getName() {return ReadData.name;}
+	private final static String name = "WriteData"; // A name all processes of this type will be called
+	private final static int pace = 5000; // Assume you do not need to write data that often
+	
+	protected String getName() {return WriteData.name;}
+	protected int getInterval() {return WriteData.pace;}
+	
+	public void execute() {System.out.println("write");} // Meets interface requirement #3
+
+}
+
+class ReadData // Skeleton I/O process.  For example, reading data into a buffer
+extends IOProcess {
+	private final static String name = "ReadData";
+	private final static int pace = 500; // Assume you need to read data fairly often
+	
+	protected String getName() {return ReadData.name;}
+	protected int getInterval() {return ReadData.pace;}
 	
 	public void execute() {System.out.println("read");}
 }
