@@ -33,7 +33,7 @@ public class ProcessThreadManager
 		jt.startProcess(new ReadData()); // Start another example process
 		jt.startProcess(new WriteData()); // Start an example process
 		while (run){
-			if ((System.currentTimeMillis() - startTime) > 5005){ // Issue process termination after 5 seconds, with some leeway
+			if ((System.currentTimeMillis() - startTime) > 5010){ // Issue process termination after 5 seconds, with some leeway
 				jt.stopAll();
 				break;
 			}
