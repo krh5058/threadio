@@ -1,122 +1,117 @@
-//import java.io.DataOutputStream;
-//import java.io.FileOutputStream;
+import java.io.*;
 
-import java.util.ArrayList;
 public class ProcessThreadManager
 {
-	private ArrayList<IOProcess> processes = new ArrayList<IOProcess>();
-	private ArrayList<Thread> threads = new ArrayList<Thread>();
-    public ProcessThreadManager()
-    {
-    	System.out.println("Initialized ProcessThreadManager.");
+	private static final int maxAllowableProcesses = 2; // Maximum allowable processes
+	private IOProcess[] processes = new IOProcess[maxAllowableProcesses];
+	private Thread[] threads = new Thread[maxAllowableProcesses]; // 1:1 process-to-thread ratio
+	
+	public void startProcess(IOProcess process){ // Store and start thread
+    	boolean full = true;
+    	for (int i=0;i<processes.length;i++) { // Search for allowable slot
+		if (processes[i] == null){  // Allowed!
+			(threads[i] = new Thread(processes[i] = process)).start(); // Store process and thread, and start thread
+			System.out.format("Started process (%d), %s, in thread: %s%n",i,processes[i].name,threads[i].getName()); // Validate process against thread index
+				full = false;
+    	        break; // Leave remaining slots as null
+    		}
+    	}
+		if (full){ // No slot available
+			System.out.format("Could not add process, %s. Allowable processes limit (%d) reached.%n",process.name,maxAllowableProcesses);
+		}
     }
-    
-//    public void startThread(){
-//    	 t.start();
-//    }
-    
-    public void attachProcessAndStartThread(IOProcess process){
-    	this.processes.add(process);
-    	this.startThread(process);
-    }
-    
-    private void startThread(IOProcess process) {
-    	Thread t = new Thread(process);
-    	this.threads.add(t);
-        t.start();
-        System.out.format("Started thread: %s%n",
-    			this.threadMessage(t));
-    }
-    private void stopAll() {
-    	for (IOProcess process : processes) {
-//    		if (t != null){
-    		process.terminate();
-    		System.out.println("terminate");
-//    		}
+    private void stopAll() { // Stop all threads
+    	System.out.println("Stopping all threads...");
+    	for (Thread thread : threads) {
+    		if (thread != null){
+    			thread.interrupt(); // Terminated process loop
+    		}
     	}
     }
-    private String threadMessage(Thread t) {
-        String threadName =
-            t.getName();
-        return threadName;
-    }
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-//		new MyJavaThread().start();
+	public static void main(String[] args) { // Demonstration purposes
 		ProcessThreadManager jt = new ProcessThreadManager();
-		jt.attachProcessAndStartThread(new WriteData());
-//		jt.appendFilename("test");
-//		jt.appendFilename("test2");
-//		System.out.println(jt.getIndex("test"));
-//		System.out.println(jt.getIndex("test2"));
 		boolean run = true;
 		long startTime = System.currentTimeMillis();
+		jt.startProcess(new ReadData()); // Start another example process
+//		jt.startProcess(new WriteData()); // Start an example process
 		while (run){
-			if ((System.currentTimeMillis() - startTime) > 10000){
-				System.out.println("Stop all.");
+			if ((System.currentTimeMillis() - startTime) > 5010){ // Issue process termination after 5 seconds, with some leeway
 				jt.stopAll();
 				break;
 			}
 		}
+		System.out.println("Done!");
 	}
 }
 
-
-interface IOProcess extends Runnable {
-	void terminate();
+interface ProcessInterface extends Runnable { // A loose contract for a process
+	void execute(); // Do something
 }
 
-class WriteData
-implements IOProcess {
-    private ArrayList<String> filenames = new ArrayList<String>();
-	private volatile boolean running = true;
+abstract class IOProcess implements ProcessInterface { // One example of a process: I/O handling
+	public String name; // An accessible name
 	
-    public WriteData()
-    {
-    	System.out.println("Initialized WriteData.");
+	public IOProcess() { // Constructor
+		System.out.format("Initialized IOProcess: %s.%n",this.name = this.getName());
     }
-    
-	public void terminate() {
-		running = false;
-	}
-	
-    public void appendFilename(String filename)
-    {
-    	if (this.filenames.contains(filename)) {
-    		System.out.format("Filename, %s, already appened to index %d.%n",
-    				filename,
-    				this.getIndex(filename));
-    	} else {
-    		this.filenames.add(filename);
-    	}
-    }
-    public int getIndex(String filename)
-    {
-    	return this.filenames.indexOf(filename);
-    }
+	// Expected accessor methods
+	abstract protected String getName(); // The process must be able to provide a name
+	abstract protected int getInterval(); // The process must be able to provide an interval for execution
 
+}
+//
+//class WriteData // Skeleton I/O process.  For example, writing data from some buffer (and possibly flush)
+//extends IOProcess {
+//	private final static String name = "WriteData"; // A name all processes of this type will be called
+//	private static int pace; // Assume you do not need to write data that often
+//	
+//	protected String getName() {return WriteData.name;}
+//	protected int getInterval() {return WriteData.pace;}
+//	
+//	private String outFile;
+//	
+//	public void execute() {
+//		System.out.println("write"); // Meets interface requirement #2
+//
+//		DataOutputStream out = new DataOutputStream(
+//				new FileOutputStream(filename));
+//		for (int i=0; i < doubleData.length; i++)
+//		{
+//			out.writeDouble(doubleData[i]);
+//		}
+//		out.close();
+//	}
+//}
+
+class ReadData // Skeleton I/O process.  For example, reading data into a buffer
+extends IOProcess {
+	private final static String name = "ReadData";
+	private final static int pace = 100; // Assume you need to read data fairly often
+	private volatile boolean running = true; // A flag for run()
+	
+	protected String getName() {return ReadData.name;}
+	protected int getInterval() {return ReadData.pace;}
+	
 	@Override
-	public void run()
-	{
-		while (running){
-			try
-			{
-				System.out.println("test");
-				Thread.sleep(2000);
-				//    	            DataOutputStream out = new DataOutputStream(
-				//    	                                     new FileOutputStream(filename));
-				//    	            for (int i=0; i < doubleData.length; i++)
-				//    	            {
-				//    	                out.writeDouble(doubleData[i]);
-				//    	            }
-				//    	            out.close();
-			} catch (InterruptedException e) {
-                running = false;
-			} catch (Exception ex) {
-				System.out.println(ex.toString());
-			}
+	public void run() // Meets interface requirement #1
+	{	
+		while (this.running){ // Determines the lifetime of the thread
+				if (this.getInterval() != 0) {
+					try // Essential for sleep
+					{
+						Thread.sleep(this.getInterval()); // Blocking method to free processor
+					} catch (InterruptedException e1) { // Catch an interruption
+						this.running = false; // Assume interruptions mean to end process.  Possibly clean-up.
+					}
+				}
+
+			this.execute(); // Do something
 		}
-		System.out.println("finished");
 	}
+	
+	public void terminate(){
+		this.running = false;
+	}
+	
+	public void execute() {System.out.println("read");}
 }
