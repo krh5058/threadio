@@ -20,7 +20,7 @@ public class ProcessThreadManager
 			System.out.format("Could not add process, %s. Allowable processes limit (%d) reached.%n",process.name,maxAllowableProcesses);
 		}
     }
-	private void startAll(){
+	public void startAll(){
     	System.out.println("Starting all threads...");
     	for (Thread thread : threads) {
     		if (thread != null){
@@ -28,7 +28,7 @@ public class ProcessThreadManager
     		}
     	}
 	}
-    private void stopAll() { // Stop all threads
+	public void stopAll() { // Stop all threads
     	System.out.println("Stopping all threads...");
     	for (Thread thread : threads) {
     		if (thread != null){
