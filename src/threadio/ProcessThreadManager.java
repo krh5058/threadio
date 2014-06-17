@@ -1,5 +1,7 @@
 package threadio;
 
+import java.io.IOException;
+
 public class ProcessThreadManager
 {
 	private static final int maxAllowableProcesses = 2; // Maximum allowable processes
@@ -20,6 +22,14 @@ public class ProcessThreadManager
 			System.out.format("Could not add process, %s. Allowable processes limit (%d) reached.%n",process.name,maxAllowableProcesses);
 		}
     }
+	public void removeAll(){ // Store and start thread
+		for (int i=0;i<processes.length;i++) { // Search for allowable slot
+			if (processes[i] != null){
+				processes[i] = null;
+				threads[i] = null;
+			}
+		}
+    }
 	public void startAll(){
     	System.out.println("Starting all threads...");
     	for (Thread thread : threads) {
@@ -36,29 +46,32 @@ public class ProcessThreadManager
     		}
     	}
     }
-	public static void main(String[] args) { // Demonstration purposes
+	public static void main(String[] args) throws IOException { // Demonstration purposes
 		ProcessThreadManager jt = new ProcessThreadManager();
 		WriteData wd = new WriteData();
+		wd.openBufferedOutputStream("./test.txt");
 		jt.storeProcess(wd);
-		wd.appendToBuffer(1.0);
-		wd.appendToBuffer(1.1);
-		wd.appendToBuffer(2.0);
-		wd.appendToBuffer(3.0);
+		wd.appendToBuffer(4.0);
+		wd.appendToBuffer(1.141243);
+		wd.appendToBuffer(5.05454);
+		wd.appendToBuffer(54545351.2);
 		jt.startAll();
 		boolean run = true;
 		long startTime = System.currentTimeMillis();
 		while (run){
-			if ((System.currentTimeMillis() - startTime) > 10000){ // Issue process termination after 5 seconds, with some leeway
+			if ((System.currentTimeMillis() - startTime) > 2000){ // Issue process termination after 5 seconds, with some leeway
 				jt.stopAll();
 				break;
 			}
 		}
+		jt.removeAll();
 //		System.out.println("Done!");
 	}
 }
 
 interface ProcessInterface extends Runnable { // A loose contract for a process
 	void execute(); // Do something
+	void cleanup();
 }
 
 abstract class IOProcess implements ProcessInterface { // One example of a process: I/O handling
@@ -71,7 +84,7 @@ abstract class IOProcess implements ProcessInterface { // One example of a proce
 	// Expected accessor methods
 	abstract protected String getName(); // The process must be able to provide a name
 	abstract protected int getInterval(); // The process must be able to provide an interval for execution
-
+	
 	@Override
 	public void run() // Meets interface requirement #1
 	{	
@@ -81,6 +94,7 @@ abstract class IOProcess implements ProcessInterface { // One example of a proce
 				Thread.sleep(this.getInterval()); // Blocking method to free processor
 				this.execute(); // Do something
 			} catch (InterruptedException e1) { // Catch an interruption
+				this.cleanup();
 				this.running = false; // Assume interruptions mean to end process.  Possibly clean-up.
 			}
 		}

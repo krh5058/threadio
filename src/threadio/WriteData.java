@@ -1,23 +1,33 @@
 package threadio;
 import java.io.*;
+import java.nio.charset.*;
 
 import java.util.ArrayList;
 
-public class WriteData // Skeleton I/O process.  For example, writing data from some buffer (and possibly flush)
+public class WriteData
 extends IOProcess {
-	private final static String name = "WriteData"; // A name all processes of this type will be called
-	private static int pace = 4000; // Assume you do not need to write data that often
+	private final static String name = "WriteData";
+	private static int pace = 60000;
 	private ArrayList<Double> buffer = new ArrayList<Double>();
 	
 	protected String getName() {return WriteData.name;}
 	protected int getInterval() {return WriteData.pace;}
+
+	private final Charset UTF8 = Charset.forName("UTF-8");
+	private BufferedWriter writer;
 	
-//	private String outFile;
+	public void openBufferedOutputStream(String filename) throws IOException{
+		FileOutputStream file = new FileOutputStream(filename);
+		OutputStreamWriter osw = new OutputStreamWriter(file, UTF8);
+		this.writer = new BufferedWriter(osw);		
+	}
 	
 	public void execute() {
 //		System.out.println("write"); // Meets interface requirement #2
-		this.writeFromBuffer();
-		this.clearBuffer();
+		if (this.writer != null) {
+			this.writeFromBuffer();
+			this.clearBuffer();
+		}
 	}
 	public void appendToBuffer(double value){
 		this.buffer.add(value);
@@ -26,18 +36,27 @@ extends IOProcess {
 		if (this.buffer.size()>0){
 			for (double value : this.buffer){
 				System.out.println(value);
+				try {
+					this.writer.write(String.valueOf(value));
+					this.writer.newLine();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}
 	public void clearBuffer(){
 		this.buffer.clear();
 	}
+	@Override
+	public void cleanup(){
+		this.execute();
+		try {
+			this.writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
-//
-//DataOutputStream out = new DataOutputStream(
-//		new FileOutputStream(filename));
-//for (int i=0; i < doubleData.length; i++)
-//{
-//	out.writeDouble(doubleData[i]);
-//}
-//out.close();
