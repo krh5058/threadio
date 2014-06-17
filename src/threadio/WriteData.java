@@ -7,30 +7,39 @@ import java.util.ArrayList;
 public class WriteData
 extends IOProcess {
 	private final static String name = "WriteData";
-	private static int pace = 60000;
+	private int pace = 60000;
 	private ArrayList<Double> buffer = new ArrayList<Double>();
 	
 	protected String getName() {return WriteData.name;}
-	protected int getInterval() {return WriteData.pace;}
+	protected int getInterval() {return this.pace;}
 
 	private final Charset UTF8 = Charset.forName("UTF-8");
 	private BufferedWriter writer;
+	
+	public WriteData(int... pace){
+		super();
+		if (pace.length!=0){
+			this.pace = pace[0];
+		}
+	}
 	
 	public void openBufferedOutputStream(String filename) throws IOException{
 		FileOutputStream file = new FileOutputStream(filename);
 		OutputStreamWriter osw = new OutputStreamWriter(file, UTF8);
 		this.writer = new BufferedWriter(osw);		
 	}
-	
+
+	public void appendToBuffer(double value){
+		this.buffer.add(value);
+	}
 	public void execute() {
 //		System.out.println("write"); // Meets interface requirement #2
 		if (this.writer != null) {
 			this.writeFromBuffer();
 			this.clearBuffer();
+		} else {
+			System.out.println("WriteData: No output stream defined.");
 		}
-	}
-	public void appendToBuffer(double value){
-		this.buffer.add(value);
 	}
 	public void writeFromBuffer(){
 		if (this.buffer.size()>0){
@@ -49,14 +58,15 @@ extends IOProcess {
 	public void clearBuffer(){
 		this.buffer.clear();
 	}
-	@Override
 	public void cleanup(){
 		this.execute();
-		try {
-			this.writer.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (this.writer != null) {
+			try {
+				this.writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 }
