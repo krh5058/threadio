@@ -44,7 +44,7 @@ extends IOProcess {
 	public void writeFromBuffer(){
 		if (this.buffer.size()>0){
 			for (double value : this.buffer){
-				System.out.println(value);
+				System.out.println("Writing (" + Thread.currentThread().getName() + "):" + value);
 				try {
 					this.writer.write(String.valueOf(value));
 					this.writer.newLine();
@@ -56,6 +56,7 @@ extends IOProcess {
 		}
 	}
 	public void clearBuffer(){
+		System.out.println("Clearing buffer (" + Thread.currentThread().getName() + ").");
 		this.buffer.clear();
 	}
 	public void cleanup(){

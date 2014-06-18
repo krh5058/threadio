@@ -8,8 +8,9 @@ public class ProcessThreadManager
 	private IOProcess[] processes = new IOProcess[maxAllowableProcesses];
 	private Thread[] threads = new Thread[maxAllowableProcesses]; // 1:1 process-to-thread ratio
 		
-	public void storeProcess(IOProcess ... inProcesses){ // Store and start thread
-		for (IOProcess process : inProcesses){
+//	public void storeProcess(IOProcess ... inProcesses){ // Store and start thread
+	public void storeProcess(IOProcess process){ // Store and start thread
+//		for (IOProcess process : inProcesses){
 			boolean full = true;
 			for (int i=0;i<processes.length;i++) { // Search for allowable slot
 				if (processes[i] == null){  // Allowed!
@@ -21,9 +22,9 @@ public class ProcessThreadManager
 			}
 			if (full){ // No slot available
 				System.out.format("Could not add process, %s. Allowable processes limit (%d) reached.%n",process.name,maxAllowableProcesses);
-				break;
+//				break;
 			}
-		}
+//		}
     }
 	public void removeAll(){ // Store and start thread
 		for (int i=0;i<processes.length;i++) { // Search for allowable slot
@@ -38,7 +39,7 @@ public class ProcessThreadManager
 			System.out.println("Starting (staggered) all threads...");
 			for (Thread thread : threads) {
 				if (thread != null){
-					thread.start(); // Terminated process loop
+					thread.start(); // Start thread
 					try {
 					    Thread.sleep(stagger[0]);
 					} catch(InterruptedException ex) {
@@ -64,25 +65,29 @@ public class ProcessThreadManager
     	}
     }
 	public static void main(String[] args) throws IOException { // Demonstration purposes
-		ProcessThreadManager jt = new ProcessThreadManager();
-//		WriteData wd = new WriteData();
-//		wd.openBufferedOutputStream("./test.txt");
-//		jt.storeProcess(new WriteData(),new WriteData());
-//		jt.storeProcess();
-//		wd.appendToBuffer(4.0);
-//		wd.appendToBuffer(1.141243);
-//		wd.appendToBuffer(5.05454);
-//		wd.appendToBuffer(54545351.2);
-		jt.startAll(1000);
-		boolean run = true;
-		long startTime = System.currentTimeMillis();
-		while (run){
-			if ((System.currentTimeMillis() - startTime) > 7000){ // Issue process termination after 5 seconds, with some leeway
-				jt.stopAll();
-				break;
-			}
-		}
-		jt.removeAll();
+//		ProcessThreadManager jt = new ProcessThreadManager();
+////		WriteData wd = new WriteData();
+//		WriteData wd1 = new WriteData();
+//		WriteData wd2 = new WriteData();
+////		jt.storeProcess(wd1,wd2);
+//		wd1.openBufferedOutputStream("./test1.txt");
+//		wd2.openBufferedOutputStream("./test2.txt");
+//		wd1.appendToBuffer(1);
+//		wd1.appendToBuffer(2);
+//		wd1.appendToBuffer(3.3213);
+//		wd2.appendToBuffer(2);
+//		wd2.appendToBuffer(4);
+//		wd2.appendToBuffer(5.3213);
+//		jt.startAll();
+//		boolean run = true;
+//		long startTime = System.currentTimeMillis();
+//		while (run){
+//			if ((System.currentTimeMillis() - startTime) > 7000){ // Issue process termination after 7 seconds, with some leeway
+//				jt.stopAll();
+//				break;
+//			}
+//		}
+//		jt.removeAll();
 //		System.out.println("Done!");
 	}
 }
