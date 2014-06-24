@@ -13,7 +13,8 @@ extends IOProcess {
 	protected String getName() {return WriteData.name;}
 	protected int getInterval() {return this.pace;}
 
-	private final Charset UTF8 = Charset.forName("UTF-8");
+	private final Charset ASCII = Charset.forName("US-ASCII");
+//	private final Charset UTF8 = Charset.forName("UTF-8");
 	private BufferedWriter writer;
 	
 	public WriteData(int... pace){
@@ -25,7 +26,7 @@ extends IOProcess {
 	
 	public void openBufferedOutputStream(String filename) throws IOException{
 		FileOutputStream file = new FileOutputStream(filename);
-		OutputStreamWriter osw = new OutputStreamWriter(file, UTF8);
+		OutputStreamWriter osw = new OutputStreamWriter(file, ASCII);
 		this.writer = new BufferedWriter(osw);		
 	}
 
