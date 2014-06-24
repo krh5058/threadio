@@ -149,11 +149,11 @@ class StartThreads implements ProcessInterface{
 					thread.start();
 					Thread.sleep(this.stagger);
 				} catch(InterruptedException ex) {
+					this.cleanup();
 					break;
 				}
 			}
 		}
-		this.cleanup();
 	}
 
 	@Override
